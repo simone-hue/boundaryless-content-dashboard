@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Sources: tracks all monitored content sources
+model Source {
+  id          String   @id @default(cuid())
+  type        String   // 'file' | 'git' | 'calendar'
+  path        String
+  name        String
+  description String?
+  category    String?  // 'narrative' | 'spec' | 'format' | 'book' | 'pattern'
+  lastHash    String?
+  lastSynced  DateTime?
+  watchEnabled Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  snapshots   SourceSnapshot[]
+  contentSources ContentSource[]
+}
+
+// Source snapshots: versioned content from sources
+model SourceSnapshot {
+  id          String   @id @default(cuid())
+  sourceId    String
+  content     String
+  contentHash String
+  extractedAt DateTime @default(now())
+  metadata    String?  // JSON string for parsed frontmatter, sections, etc.
+
+  source      Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  contentSources ContentSource[]
+
+  @@unique([sourceId, contentHash])
+}
+
+// Build log entries: captures weekly development insights
+model BuildLogEntry {
+  id              String   @id @default(cuid())
+  weekStart       DateTime @unique
+  weekEnd         DateTime
+  clientWork      String?
+  softwareDev     String?
+  prototyping     String?
+  reading         String?
+  voiceTranscript String?
+  status          String   @default("draft") // 'draft' | 'finalized'
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Contents: all generated content pieces
+model Content {
+  id              String    @id @default(cuid())
+  type            String    // 'newsletter' | 'newsletter_section' | 'social_linkedin' | 'social_x_thread' | 'book_chapter' | 'build_log'
+  title           String
+  slug            String?   @unique
+  status          String    @default("draft") // 'draft' | 'generated' | 'review' | 'approved' | 'scheduled' | 'published' | 'archived'
+  parentId        String?
+  sequenceOrder   Int?
+  bodyMarkdown    String?
+  bodyJson        String?   // JSON for structured content
+  generationPrompt String?
+  generationModel String?
+  generationTokens Int?
+  generatedAt     DateTime?
+  scheduledFor    DateTime?
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  parent          Content?  @relation("ContentHierarchy", fields: [parentId], references: [id])
+  children        Content[] @relation("ContentHierarchy")
+  contentSources  ContentSource[]
+  approvals       Approval[]
+}
+
+// Content sources: links content to source materials used
+model ContentSource {
+  id          String   @id @default(cuid())
+  contentId   String
+  sourceId    String
+  snapshotId  String?
+  usageType   String?  // 'primary' | 'reference' | 'context'
+  excerpt     String?
+  createdAt   DateTime @default(now())
+
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  source      Source   @relation(fields: [sourceId], references: [id])
+  snapshot    SourceSnapshot? @relation(fields: [snapshotId], references: [id])
+}
+
+// Approvals: tracks content approval workflow
+model Approval {
+  id             String   @id @default(cuid())
+  contentId      String
+  action         String   // 'submit_review' | 'request_changes' | 'approve' | 'schedule' | 'publish' | 'archive'
+  actor          String?
+  notes          String?
+  previousStatus String?
+  newStatus      String?
+  createdAt      DateTime @default(now())
+
+  content        Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+// Prompt templates: reusable prompts for content generation
+model PromptTemplate {
+  id                 String   @id @default(cuid())
+  name               String   @unique
+  description        String?
+  category           String   // 'newsletter_thesis' | 'newsletter_pattern' | etc.
+  systemPrompt       String?
+  userPromptTemplate String
+  model              String   @default("claude-sonnet-4-20250514")
+  maxTokens          Int      @default(4096)
+  temperature        Float    @default(0.7)
+  version            Int      @default(1)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
