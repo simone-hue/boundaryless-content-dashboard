@@ -129,3 +129,32 @@ model PromptTemplate {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
+
+// Readings: curated articles captured via bookmarklet with AI suggestions
+model Reading {
+  id              String    @id @default(cuid())
+  url             String    @unique
+  title           String
+  excerpt         String?   // Selected text or meta description
+  content         String?   // Full fetched article content
+
+  // AI-generated suggestions
+  aiRelevance     String?   // How this connects to the thesis
+  aiChapters      String?   // JSON array of related book chapters
+  aiTags          String?   // JSON array of suggested tags
+  aiAngle         String?   // Potential newsletter angle
+
+  // User edits
+  userNote        String?   // Personal note from user
+  userTags        String?   // JSON array of user-added tags
+
+  // Status workflow
+  status          String    @default("inbox") // 'inbox' | 'accepted' | 'archived' | 'used'
+  usedInContentId String?   // ID of content where this reading was used
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  processedAt     DateTime? // When Claude analyzed it
+  acceptedAt      DateTime? // When user accepted it
+  updatedAt       DateTime  @updatedAt
+}

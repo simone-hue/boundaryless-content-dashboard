@@ -14,7 +14,8 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Bookmark
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -30,6 +31,11 @@ interface DashboardStats {
   newsletter: {
     nextIssue: number
     status: string
+  }
+  readings: {
+    inbox: number
+    accepted: number
+    total: number
   }
 }
 
@@ -54,6 +60,10 @@ export default function DashboardPage() {
           ).lastSynced
         : null
 
+      // Fetch readings count
+      const readingsRes = await fetch('/api/readings/count')
+      const readingsCounts = await readingsRes.json()
+
       // Get current week
       const now = new Date()
       const weekStart = new Date(now)
@@ -73,6 +83,11 @@ export default function DashboardPage() {
         newsletter: {
           nextIssue: 1,
           status: 'Planning',
+        },
+        readings: {
+          inbox: readingsCounts.inbox || 0,
+          accepted: readingsCounts.accepted || 0,
+          total: readingsCounts.total || 0,
         },
       })
     } catch (error) {
@@ -104,7 +119,7 @@ export default function DashboardPage() {
 
       <div className="flex-1 overflow-auto p-6">
         {/* Status Cards */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {/* Sources Card */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -152,6 +167,32 @@ export default function DashboardPage() {
               <Link href="/build-log">
                 <Button variant="ghost" size="sm" className="mt-4 w-full">
                   Edit Build Log
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Readings Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Readings</CardTitle>
+              <Bookmark className="h-4 w-4 text-slate-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {stats?.readings.inbox || 0}
+              </div>
+              <p className="text-xs text-slate-500">
+                in inbox
+              </p>
+              <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
+                <CheckCircle2 className="h-3 w-3" />
+                {stats?.readings.accepted || 0} accepted
+              </div>
+              <Link href="/readings">
+                <Button variant="ghost" size="sm" className="mt-4 w-full">
+                  View Readings
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -213,6 +254,20 @@ export default function DashboardPage() {
                   <div>
                     <p className="font-medium">Add Build Log</p>
                     <p className="text-sm text-slate-500">Capture weekly insights</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/readings">
+              <Card className="cursor-pointer transition-colors hover:bg-slate-50">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className="rounded-lg bg-pink-100 p-2">
+                    <Bookmark className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Review Readings</p>
+                    <p className="text-sm text-slate-500">{stats?.readings.inbox || 0} in inbox</p>
                   </div>
                 </CardContent>
               </Card>
