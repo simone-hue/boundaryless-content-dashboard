@@ -17,28 +17,11 @@ import {
 export default function SettingsPage() {
   const [copied, setCopied] = useState(false)
 
-  // Bookmarklet code - sends reading to dashboard API
-  const bookmarkletCode = `javascript:(function(){
-  const data = {
-    url: window.location.href,
-    title: document.title,
-    excerpt: window.getSelection().toString().substring(0, 500),
-    description: document.querySelector('meta[name="description"]')?.content || ''
-  };
-  fetch('http://localhost:3000/api/readings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-  .then(d => alert('✅ Saved: ' + (d.reading?.title || d.message)))
-  .catch(e => alert('❌ Error: ' + e.message));
-})();`
-
-  const minifiedBookmarklet = bookmarkletCode.replace(/\n/g, '').replace(/\s+/g, ' ')
+  // Bookmarklet code - minified for manual bookmark creation
+  const bookmarkletCode = `javascript:(function(){var d={url:location.href,title:document.title,excerpt:getSelection().toString().slice(0,500),description:(document.querySelector('meta[name="description"]')||{}).content||''};fetch('http://localhost:3000/api/readings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()).then(x=>alert('✅ '+(x.reading?.title||x.message))).catch(e=>alert('❌ '+e))})();`
 
   async function copyBookmarklet() {
-    await navigator.clipboard.writeText(minifiedBookmarklet)
+    await navigator.clipboard.writeText(bookmarkletCode)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -65,52 +48,63 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="rounded-lg bg-amber-50 p-4">
-                <h4 className="font-medium text-amber-800">How to install:</h4>
-                <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-amber-700">
-                  <li>Drag the button below to your bookmarks bar</li>
-                  <li>Or right-click and "Add to bookmarks"</li>
-                  <li>When on any article, click the bookmark to save it</li>
+                <h4 className="font-medium text-amber-800">How to install (3 steps):</h4>
+                <ol className="mt-2 list-inside list-decimal space-y-2 text-sm text-amber-700">
+                  <li>
+                    <strong>Copy the code</strong> using the button below
+                  </li>
+                  <li>
+                    <strong>Create a new bookmark</strong> in your browser:
+                    <ul className="ml-6 mt-1 list-disc text-amber-600">
+                      <li>Chrome/Edge: Right-click bookmarks bar → "Add page..."</li>
+                      <li>Firefox: Ctrl+Shift+B → Right-click → "New Bookmark"</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Paste the code</strong> in the URL field, name it "Save to Boundaryless"
+                  </li>
                 </ol>
               </div>
 
-              <div className="flex items-center gap-4">
-                <a
-                  href={minifiedBookmarklet}
-                  onClick={(e) => e.preventDefault()}
-                  draggable
-                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 font-medium text-white shadow-md transition-transform hover:scale-105"
-                >
-                  <Bookmark className="h-4 w-4" />
-                  Save to Boundaryless
-                </a>
-                <span className="text-sm text-slate-500">← Drag this to your bookmarks bar</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={copyBookmarklet}>
+              <div className="flex flex-col gap-3">
+                <Button onClick={copyBookmarklet} className="w-full">
                   {copied ? (
                     <>
-                      <Check className="mr-2 h-4 w-4 text-green-500" />
-                      Copied!
+                      <Check className="mr-2 h-4 w-4" />
+                      Copied to clipboard!
                     </>
                   ) : (
                     <>
                       <Copy className="mr-2 h-4 w-4" />
-                      Copy code
+                      Copy Bookmarklet Code
                     </>
                   )}
                 </Button>
-                <span className="text-xs text-slate-400">For manual bookmark creation</span>
+              </div>
+
+              <div className="rounded-lg bg-slate-50 p-4">
+                <h4 className="text-sm font-medium text-slate-700">How to use:</h4>
+                <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-slate-600">
+                  <li>Navigate to any article you want to save</li>
+                  <li>Optionally select text you find interesting</li>
+                  <li>Click the "Save to Boundaryless" bookmark</li>
+                  <li>You&apos;ll see an alert confirming the save</li>
+                </ol>
               </div>
 
               <details className="text-sm">
                 <summary className="cursor-pointer text-slate-500 hover:text-slate-700">
                   View bookmarklet code
                 </summary>
-                <pre className="mt-2 overflow-x-auto rounded-md bg-slate-100 p-3 text-xs">
+                <pre className="mt-2 overflow-x-auto rounded-md bg-slate-100 p-3 text-xs break-all whitespace-pre-wrap">
                   {bookmarkletCode}
                 </pre>
               </details>
+
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                <strong>Note:</strong> Make sure the dashboard is running on{' '}
+                <code className="rounded bg-blue-100 px-1">localhost:3000</code> when you use the bookmarklet.
+              </div>
             </CardContent>
           </Card>
 
@@ -201,7 +195,7 @@ export default function SettingsPage() {
             <CardContent>
               <div className="space-y-2 text-sm text-slate-600">
                 <p><strong>Boundaryless Content Dashboard</strong></p>
-                <p>Version 0.2 - Readings System</p>
+                <p>Version 0.2.1 - Readings System</p>
                 <p className="mt-4">
                   A tool for sustainable content production, integrating your thesis,
                   curated readings, and AI-assisted content generation.
