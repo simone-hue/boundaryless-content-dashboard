@@ -81,7 +81,7 @@ export function Sidebar() {
       {/* Footer */}
       <div className="border-t border-slate-800 p-4">
         <p className="text-xs text-slate-500">
-          Content Dashboard v0.2
+          Content Dashboard v0.3
         </p>
       </div>
     </div>

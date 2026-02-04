@@ -273,17 +273,19 @@ export default function DashboardPage() {
               </Card>
             </Link>
 
-            <Card className="cursor-not-allowed opacity-50">
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="rounded-lg bg-blue-100 p-2">
-                  <BookOpen className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium">Draft Newsletter</p>
-                  <p className="text-sm text-slate-500">Coming in v0.5</p>
-                </div>
-              </CardContent>
-            </Card>
+            <Link href="/newsletter">
+              <Card className="cursor-pointer transition-colors hover:bg-slate-50">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className="rounded-lg bg-blue-100 p-2">
+                    <BookOpen className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Draft Newsletter</p>
+                    <p className="text-sm text-slate-500">Create or edit newsletters</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
 
             <Card className="cursor-not-allowed opacity-50">
               <CardContent className="flex items-center gap-4 p-4">
